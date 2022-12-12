@@ -17,7 +17,7 @@ function login()
     $_SESSION['state'] = uniqid();
 
     $queryParams = http_build_query([
-        'reponse_type'=> "code",
+        'response_type'=> "code",
         'state' => $_SESSION['state'],
         'scope' => 'basic',
         'client_id'=> OAUTH_CLIENTID,
@@ -34,7 +34,7 @@ function login()
 
     // facebook sdk
     $queryParams = http_build_query([
-        'reponse_type'=> "code",
+        'response_type'=> "code",
         'state' => $_SESSION['state'],
         'scope' => '',
         'client_id'=> FB_CLIENTID,
@@ -44,15 +44,22 @@ function login()
     echo "<a href='$url'>Se connecter via Facebook</a>";
 
 
+
     // google sdk
+    $scopes = [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/plus.login'
+    ];
+
     $queryParams = http_build_query([
-        'reponse_type'=> "code",
+        'response_type'=> "code",
         'state' => $_SESSION['state'],
-        'scope' => '',
+        'scope' => implode(' ', $scopes),
         'client_id'=> GG_CLIENTID,
         "redirect_uri"=> "http://localhost:8081/google_success"
     ]);
-    $url = "" . $queryParams;
+    $url = "https://accounts.google.com/o/oauth2/v2/auth?" . $queryParams;
     echo "<a href='$url'>Se connecter via Google</a>";
 }
 
