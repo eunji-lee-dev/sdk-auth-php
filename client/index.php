@@ -166,7 +166,6 @@ function redirectTwSuccess()
         "token_url" => "https://id.twitch.tv/oauth2/token",
         "user_url" => "https://api.twitch.tv/helix/users"
     ]);
-
 }
 
 // Login func
@@ -233,8 +232,51 @@ function postTokenAndUser($params, $settings)
     ]);
 
     $response = file_get_contents($url, false, $context);
-
+    var_dump($response);
     $response = json_decode($response, true);
+
+
+    $token = $response['access_token'];
+
+
+    // token
+    $context = stream_context_create([
+        "http" => [
+            "header" => [
+                'Authorization: Bearer ' . $token, 
+                'Client-Id: uydgwxv0r507u0ufc7ws99ymqq4kvi'
+            ]
+        ]
+    ]);
+    $url = $settings['user_url'];
+    $response = file_get_contents($url, false, $context);
+    var_dump($response);
+}
+
+function secondPostTokenAndUser($params, $settings)
+{
+    $queryParams = http_build_query(array_merge([
+        'client_id' => $settings['client_id'],
+        'client_secret' => $settings['client_secret'],
+    ], $params));
+
+    $url = $settings['token_url'];
+
+
+    // url
+    $context = stream_context_create([
+        "http" => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n"
+                . "Content-Length: " . strlen($queryParams) . "\r\n",
+            'content' => $queryParams
+        ]
+    ]);
+
+    $response = file_get_contents($url, false, $context);
+    var_dump($response);
+    $response = json_decode($response, true);
+
 
     $token = $response['access_token'];
 
@@ -249,8 +291,8 @@ function postTokenAndUser($params, $settings)
     ]);
     $url = $settings['user_url'];
     $response = file_get_contents($url, false, $context);
-    var_dump($response);
 }
+
 
 
 $url = strtok($_SERVER['REQUEST_URI'], '?');
