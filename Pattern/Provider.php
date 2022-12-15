@@ -28,7 +28,7 @@ abstract class Provider {
             'grant_type' => "authorization_code",
             "code" => $code,
             "redirect_uri" => "http://localhost:8081/" . static::$redirectUriMethodPost
-        ], [
+        ],[
             "client_id" => static::$clientIdMethodPost,
             "client_secret" => static::$clientSecretMethodPost,
             "token_url" => static::$tokenMethodPost,
@@ -68,7 +68,7 @@ abstract class Provider {
                 "http" => [
                     "header" => [
                         "Authorization: Bearer " . $token,
-                        'Client-Id: '. static::$clientId,
+                        'Client-Id: '. static::$clientIdMethodPost,
 
                     ]
                 ]
@@ -93,7 +93,8 @@ abstract class Provider {
             $context = stream_context_create([
                 "http" => [
                     "header" => [
-                        "Authorization: Bearer " . $token
+                        "Authorization: Bearer " . $token,
+
                     ]
                 ]
             ]);
