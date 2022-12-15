@@ -201,8 +201,7 @@ function getTokenAndUser($params, $settings)
     $context = stream_context_create([
         "http" => [
             "header" => [
-                "Authorization: Bearer " . $token,
-                'Client-Id: '. TW_CLIENTID
+                "Authorization: Bearer " . $token
             ]
         ]
     ]);
@@ -233,16 +232,19 @@ function postTokenAndUser($params, $settings)
     ]);
 
     $response = file_get_contents($url, false, $context);
-
+    var_dump($response);
     $response = json_decode($response, true);
 
+
     $token = $response['access_token'];
+
 
     // token
     $context = stream_context_create([
         "http" => [
             "header" => [
-                "Authorization: Bearer " . $token
+                'Authorization: Bearer ' . $token,
+                'Client-Id: '. TW_CLIENTID
             ]
         ]
     ]);

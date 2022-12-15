@@ -2,13 +2,13 @@
 
 abstract class Provider {
     function redirectSuccess()
-
     {
         ["code" => $code, "state" => $state] = $_GET;
         if ($state !== $_SESSION['state']) {
             return http_response_code(400);
         }
 
+        // Get Method
         getTokenAndUser(
             [
                 'grant_type' => "authorization_code",
@@ -23,6 +23,7 @@ abstract class Provider {
             ]
         );
 
+        // Post Method
         postTokenAndUser([
             'grant_type' => "authorization_code",
             "code" => $code,
@@ -100,8 +101,31 @@ abstract class Provider {
             $response = file_get_contents($url, false, $context);
             var_dump(json_decode($response, true));
         }
+
+        $url = strtok($_SERVER['REQUEST_URI'], '?');
+        switch ($url) {
+            case '/login':
+                login();
+                break;
+            case '/success':
+                redirectSuccess();
+                break;
+            case '/do_login':
+                doLogin();
+                break;
+            case '/fb_success':
+                redirectFbSuccess();
+                break;
+            case static::$redirectUriMethodPost:
+                redirectGgSuccess();
+                break;
+            case static::$redirectUri:
+                redirectTwSuccess();
+                break;
+            default:
+                http_response_code(404);
+                break;
+        }
     }
 }
-
-
 ?>
