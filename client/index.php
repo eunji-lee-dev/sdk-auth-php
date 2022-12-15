@@ -30,7 +30,7 @@ function login()
         <input type="submit" value="login">
         </form>';
     echo "<a href='$url'>Se connecter via OAuthServer</a>";
-    echo "<br>";
+    echo "<br><br>";
 
     // facebook sdk
     $queryParams = http_build_query([
@@ -42,6 +42,8 @@ function login()
     ]);
     $url = "https://www.facebook.com/v15.0/dialog/oauth?" . $queryParams;
     echo "<a href='$url'>Se connecter via Facebook</a>";
+    echo "<br><br>";
+
 
 
 
@@ -61,6 +63,8 @@ function login()
     ]);
     $url = "https://accounts.google.com/o/oauth2/v2/auth?" . $queryParams;
     echo "<a href='$url'>Se connecter via Google</a>";
+    echo "<br><br>";
+
 }
 
 function redirectSuccess()
@@ -105,7 +109,6 @@ function redirectFbSuccess()
     ]);
 }
 
-
 // Redirect successfully for google
 function redirectGgSuccess()
 {
@@ -114,18 +117,20 @@ function redirectGgSuccess()
         return http_response_code(400);
     }
 
-    getTokenAndUser([
+
+    postTokenAndUser([
         'grant_type'=> "authorization_code",
         "code" => $code,
         "redirect_uri"=> "http://localhost:8081/google_success"
     ], [
         "client_id" => GG_CLIENTID,
         "client_secret" => GG_CLIENTSECRET,
-        "token_url" => "",
-        "user_url" => ""
+        "token_url" => "https://oauth2.googleapis.com/token",
+        "user_url" => "https://accounts.google.com/o/oauth2/v2/auth"
     ]);
 }
 
+// Login func
 function doLogin()
 {
     getTokenAndUser(
@@ -143,6 +148,7 @@ function doLogin()
     );
 }
 
+// Function get token and user
 function getTokenAndUser($params, $settings)
 {
     $queryParams = http_build_query(array_merge([
@@ -165,6 +171,42 @@ function getTokenAndUser($params, $settings)
     $response = file_get_contents($url, false, $context);
     var_dump(json_decode($response, true));
 }
+
+// Function get token and user for google
+function postTokenAndUser($params, $settings)
+{
+    $queryParams = http_build_query(array_merge([
+        'client_id'=> $settings['client_id'],
+        'client_secret'=> $settings['client_secret'],
+    ], $params));
+
+    $url = $settings['token_url'] . '?' . $queryParams;
+
+
+    // url
+    $response = stream_context_create([
+        "http"=> [
+            "header" => [
+                "Authorization: Bearer " . $url
+            ]
+        ]
+    ]);
+
+    $token = isset($response['access_token']);
+
+    // token
+    $context = stream_context_create([
+        "http"=> [
+            "header" => [
+                "Authorization: Bearer " . $token
+            ]
+        ]
+    ]);
+    $url = $settings['user_url'];
+    $response = file_get_contents($url, false, $context);
+    var_dump(json_decode($response, true));
+}
+
 
 $url = strtok($_SERVER['REQUEST_URI'], '?');
 switch($url) {
