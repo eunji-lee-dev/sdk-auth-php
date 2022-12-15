@@ -244,7 +244,7 @@ function postTokenAndUser($params, $settings)
         "http" => [
             "header" => [
                 'Authorization: Bearer ' . $token, 
-                'Client-Id: uydgwxv0r507u0ufc7ws99ymqq4kvi'
+                'Client-Id: '. TW_CLIENTID
             ]
         ]
     ]);
