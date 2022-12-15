@@ -253,47 +253,6 @@ function postTokenAndUser($params, $settings)
     var_dump($response);
 }
 
-function secondPostTokenAndUser($params, $settings)
-{
-    $queryParams = http_build_query(array_merge([
-        'client_id' => $settings['client_id'],
-        'client_secret' => $settings['client_secret'],
-    ], $params));
-
-    $url = $settings['token_url'];
-
-
-    // url
-    $context = stream_context_create([
-        "http" => [
-            'method' => 'POST',
-            'header' => "Content-Type: application/x-www-form-urlencoded\r\n"
-                . "Content-Length: " . strlen($queryParams) . "\r\n",
-            'content' => $queryParams
-        ]
-    ]);
-
-    $response = file_get_contents($url, false, $context);
-    var_dump($response);
-    $response = json_decode($response, true);
-
-
-    $token = $response['access_token'];
-
-
-    // token
-    $context = stream_context_create([
-        "http" => [
-            "header" => [
-                "Authorization: Bearer " . $token
-            ]
-        ]
-    ]);
-    $url = $settings['user_url'];
-    $response = file_get_contents($url, false, $context);
-}
-
-
 
 $url = strtok($_SERVER['REQUEST_URI'], '?');
 switch ($url) {
