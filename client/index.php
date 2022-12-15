@@ -172,7 +172,7 @@ function getTokenAndUser($params, $settings)
     var_dump(json_decode($response, true));
 }
 
-// Function get token and user for google
+// Function post token and user for google
 function postTokenAndUser($params, $settings)
 {
     $queryParams = http_build_query(array_merge([
@@ -180,19 +180,21 @@ function postTokenAndUser($params, $settings)
         'client_secret'=> $settings['client_secret'],
     ], $params));
 
-    $url = $settings['token_url'] . '?' . $queryParams;
+    $url = $settings['token_url'];
 
 
     // url
-    $response = stream_context_create([
+    $context = stream_context_create([
         "http"=> [
-            "header" => [
-                "Authorization: Bearer " . $url
-            ]
+            'method' => 'POST',
+            'header'=> "Content-type: application/x-www-form-urlencoded\r\n"
+                . "Content-Length: " . strlen($queryParams) . "\r\n",
+            'content' => $queryParams
         ]
     ]);
 
-    $token = isset($response['access_token']);
+    $response = file_get_contents($url, false, $context);
+    $token = $response['access_token'];
 
     // token
     $context = stream_context_create([
