@@ -166,7 +166,6 @@ function redirectTwSuccess()
         "token_url" => "https://id.twitch.tv/oauth2/token",
         "user_url" => "https://api.twitch.tv/helix/users"
     ]);
-
 }
 
 // Login func
@@ -202,7 +201,8 @@ function getTokenAndUser($params, $settings)
     $context = stream_context_create([
         "http" => [
             "header" => [
-                "Authorization: Bearer " . $token
+                "Authorization: Bearer " . $token,
+                'Client-Id: '. TW_CLIENTID
             ]
         ]
     ]);
@@ -237,7 +237,6 @@ function postTokenAndUser($params, $settings)
     $response = json_decode($response, true);
 
     $token = $response['access_token'];
-
 
     // token
     $context = stream_context_create([
