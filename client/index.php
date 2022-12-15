@@ -10,6 +10,9 @@ define("FB_CLIENTSECRET", "8083f67febd6c5c49e581ee34071522c");
 //google identifications
 define("GG_CLIENTID", "286347076324-pneu7snes85vtcjq30h0sgvtppe38rcp.apps.googleusercontent.com");
 define("GG_CLIENTSECRET", "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");
+//Twitch identifications
+define("TW_CLIENTID", "uydgwxv0r507u0ufc7ws99ymqq4kvi");
+define("TW_CLIENTSECRET", "95cgyy92muwm3iy8v1ohe7g1k6cu82");
 
 
 function login()
@@ -17,11 +20,11 @@ function login()
     $_SESSION['state'] = uniqid();
 
     $queryParams = http_build_query([
-        'response_type'=> "code",
+        'response_type' => "code",
         'state' => $_SESSION['state'],
         'scope' => 'basic',
-        'client_id'=> OAUTH_CLIENTID,
-        "redirect_uri"=> "http://localhost:8081/success"
+        'client_id' => OAUTH_CLIENTID,
+        "redirect_uri" => "http://localhost:8081/success"
     ]);
     $url = "http://localhost:8080/auth?" . $queryParams;
     echo "Se connecter via OAuthServer (form)";
@@ -34,11 +37,11 @@ function login()
 
     // facebook sdk
     $queryParams = http_build_query([
-        'response_type'=> "code",
+        'response_type' => "code",
         'state' => $_SESSION['state'],
         'scope' => '',
-        'client_id'=> FB_CLIENTID,
-        "redirect_uri"=> "http://localhost:8081/fb_success"
+        'client_id' => FB_CLIENTID,
+        "redirect_uri" => "http://localhost:8081/fb_success"
     ]);
     $url = "https://www.facebook.com/v15.0/dialog/oauth?" . $queryParams;
     echo "<a href='$url'>Se connecter via Facebook</a>";
@@ -52,16 +55,33 @@ function login()
     ];
 
     $queryParams = http_build_query([
-        'response_type'=> "code",
+        'response_type' => "code",
         'state' => $_SESSION['state'],
         'scope' => implode(' ', $scopes),
-        'client_id'=> GG_CLIENTID,
-        "redirect_uri"=> "http://localhost:8081/google_success"
+        'client_id' => GG_CLIENTID,
+        "redirect_uri" => "http://localhost:8081/google_success"
     ]);
     $url = "https://accounts.google.com/o/oauth2/v2/auth?" . $queryParams;
     echo "<a href='$url'>Se connecter via Google</a>";
     echo "<br><br>";
 
+    // twitch sdk
+    $scopes = [
+        'analytics:read:extensions',
+        'analytics:read:games',
+        'user:read:email'
+    ];
+
+    $queryParams = http_build_query([
+        'response_type' => "code",
+        'state' => $_SESSION['state'],
+        'scope' => implode(' ', $scopes),
+        'client_id' => TW_CLIENTID,
+        "redirect_uri" => "http://localhost:8081/twitch_success"
+    ]);
+    $url = "https://id.twitch.tv/oauth2/authorize?" . $queryParams;
+    echo "<a href='$url'>Se connecter via Twitch</a>";
+    echo "<br><br>";
 }
 
 function redirectSuccess()
@@ -73,9 +93,9 @@ function redirectSuccess()
 
     getTokenAndUser(
         [
-            'grant_type'=> "authorization_code",
+            'grant_type' => "authorization_code",
             "code" => $code,
-            "redirect_uri"=> "http://localhost:8081/success"
+            "redirect_uri" => "http://localhost:8081/success"
         ],
         [
             "client_id" => OAUTH_CLIENTID,
@@ -95,9 +115,9 @@ function redirectFbSuccess()
     }
 
     getTokenAndUser([
-        'grant_type'=> "authorization_code",
+        'grant_type' => "authorization_code",
         "code" => $code,
-        "redirect_uri"=> "http://localhost:8081/fb_success"
+        "redirect_uri" => "http://localhost:8081/fb_success"
     ], [
         "client_id" => FB_CLIENTID,
         "client_secret" => FB_CLIENTSECRET,
@@ -116,9 +136,9 @@ function redirectGgSuccess()
 
 
     postTokenAndUser([
-        'grant_type'=> "authorization_code",
+        'grant_type' => "authorization_code",
         "code" => $code,
-        "redirect_uri"=> "http://localhost:8081/google_success"
+        "redirect_uri" => "http://localhost:8081/google_success"
     ], [
         "client_id" => GG_CLIENTID,
         "client_secret" => GG_CLIENTSECRET,
@@ -127,14 +147,36 @@ function redirectGgSuccess()
     ]);
 }
 
+// Redirect successfully for twitch
+function redirectTwSuccess()
+{
+    ["code" => $code, "state" => $state] = $_GET;
+    if ($state !== $_SESSION['state']) {
+        return http_response_code(400);
+    }
+
+
+    postTokenAndUser([
+        'grant_type' => "authorization_code",
+        "code" => $code,
+        "redirect_uri" => "http://localhost:8081/twitch_success"
+    ], [
+        "client_id" => TW_CLIENTID,
+        "client_secret" => TW_CLIENTSECRET,
+        "token_url" => "https://id.twitch.tv/oauth2/token",
+        "user_url" => "https://api.twitch.tv/helix/users"
+    ]);
+
+}
+
 // Login func
 function doLogin()
 {
     getTokenAndUser(
         [
-            'grant_type'=> "password",
+            'grant_type' => "password",
             "username" => $_POST['username'],
-            "password"=> $_POST['password']
+            "password" => $_POST['password']
         ],
         [
             "client_id" => OAUTH_CLIENTID,
@@ -149,8 +191,8 @@ function doLogin()
 function getTokenAndUser($params, $settings)
 {
     $queryParams = http_build_query(array_merge([
-        'client_id'=> $settings['client_id'],
-        'client_secret'=> $settings['client_secret'],
+        'client_id' => $settings['client_id'],
+        'client_secret' => $settings['client_secret'],
     ], $params));
     $url = $settings['token_url'] . '?' . $queryParams;
     $response = file_get_contents($url);
@@ -158,7 +200,7 @@ function getTokenAndUser($params, $settings)
     $token = $response['access_token'];
 
     $context = stream_context_create([
-        "http"=> [
+        "http" => [
             "header" => [
                 "Authorization: Bearer " . $token
             ]
@@ -173,8 +215,8 @@ function getTokenAndUser($params, $settings)
 function postTokenAndUser($params, $settings)
 {
     $queryParams = http_build_query(array_merge([
-        'client_id'=> $settings['client_id'],
-        'client_secret'=> $settings['client_secret'],
+        'client_id' => $settings['client_id'],
+        'client_secret' => $settings['client_secret'],
     ], $params));
 
     $url = $settings['token_url'];
@@ -182,9 +224,9 @@ function postTokenAndUser($params, $settings)
 
     // url
     $context = stream_context_create([
-        "http"=> [
+        "http" => [
             'method' => 'POST',
-            'header'=> "Content-Type: application/x-www-form-urlencoded\r\n"
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n"
                 . "Content-Length: " . strlen($queryParams) . "\r\n",
             'content' => $queryParams
         ]
@@ -199,7 +241,7 @@ function postTokenAndUser($params, $settings)
 
     // token
     $context = stream_context_create([
-        "http"=> [
+        "http" => [
             "header" => [
                 "Authorization: Bearer " . $token
             ]
@@ -212,7 +254,7 @@ function postTokenAndUser($params, $settings)
 
 
 $url = strtok($_SERVER['REQUEST_URI'], '?');
-switch($url) {
+switch ($url) {
     case '/login':
         login();
         break;
@@ -227,6 +269,9 @@ switch($url) {
         break;
     case '/google_success':
         redirectGgSuccess();
+        break;
+    case '/twitch_success':
+        redirectTwSuccess();
         break;
     default:
         http_response_code(404);
