@@ -44,9 +44,6 @@ function login()
     echo "<a href='$url'>Se connecter via Facebook</a>";
     echo "<br><br>";
 
-
-
-
     // google sdk
     $scopes = [
         'https://www.googleapis.com/auth/userinfo.email',
@@ -126,7 +123,7 @@ function redirectGgSuccess()
         "client_id" => GG_CLIENTID,
         "client_secret" => GG_CLIENTSECRET,
         "token_url" => "https://oauth2.googleapis.com/token",
-        "user_url" => "https://accounts.google.com/o/oauth2/v2/auth"
+        "user_url" => "https://openidconnect.googleapis.com/v1/userinfo"
     ]);
 }
 
@@ -187,14 +184,18 @@ function postTokenAndUser($params, $settings)
     $context = stream_context_create([
         "http"=> [
             'method' => 'POST',
-            'header'=> "Content-type: application/x-www-form-urlencoded\r\n"
+            'header'=> "Content-Type: application/x-www-form-urlencoded\r\n"
                 . "Content-Length: " . strlen($queryParams) . "\r\n",
             'content' => $queryParams
         ]
     ]);
 
     $response = file_get_contents($url, false, $context);
+
+    $response = json_decode($response, true);
+
     $token = $response['access_token'];
+
 
     // token
     $context = stream_context_create([
@@ -206,7 +207,7 @@ function postTokenAndUser($params, $settings)
     ]);
     $url = $settings['user_url'];
     $response = file_get_contents($url, false, $context);
-    var_dump(json_decode($response, true));
+    var_dump($response);
 }
 
 
